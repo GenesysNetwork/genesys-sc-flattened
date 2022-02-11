@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 /// @custom:security-contact iv7.software@gmail.com
 /// Genesys Network 2022.-
+/// By CryptoClub
 
 // Ctrl+f for XXX to see all the modifications.
 

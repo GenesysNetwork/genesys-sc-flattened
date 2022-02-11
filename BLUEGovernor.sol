@@ -1,4 +1,22 @@
 // SPDX-License-Identifier: MIT
+/// @custom:security-contact iv7.software@gmail.com
+
+/// MAX SUPPLY: 100M (100.000.000)*18e
+/// Blue Lotus Governance Token (BLUEG) - Genesys Network 2022.
+//         .=.A.=.
+//   __.=./\ / \ /\.=.__
+//  (-.'-;  |   |  ;-'.-)
+//     \ `\/     \/` /
+//      ;  `\   /`  ;
+//      |    | |    |    Blue lotus - $BLUEG
+//      ;,"-.-"-.-",;          Token
+//       \\/^\ /^\//         Governance
+//        \   `   /         By CryptoClub
+//         ',___,'
+//          \\V//
+//           |||
+//           |||
+//           |||
 pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/governance/Governor.sol";

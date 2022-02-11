@@ -9,9 +9,9 @@
 //     \ `\/     \/` /
 //      ;  `\   /`  ;
 //      |    | |    |    Blue lotus - $BLUEG
-//      ;,"-.-"-.-",;       Token
-//       \\/^\ /^\//      Governance
-//        \   `   /
+//      ;,"-.-"-.-",;          Token
+//       \\/^\ /^\//         Governance
+//        \   `   /         By CryptoClub
 //         ',___,'
 //          \\V//
 //           |||

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 /// @custom:security-contact iv7.software@gmail.com
 /// Genesys Network 2022.-
+/// By CryptoClub
 pragma solidity 0.6.12;
 
 
