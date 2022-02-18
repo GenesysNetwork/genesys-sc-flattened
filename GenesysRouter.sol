@@ -293,7 +293,7 @@ library GenesysLibrary {
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'00fb7f630766e6a796048ea87d01acd3068e8ff67d078148a3fa3f4a84f69bd5' // init code hash
+                hex'0aa006db8992c830837437d63e12e35a035706121149c9facd6993e92a650c1d' // init code hash
             ))));
     }
 
