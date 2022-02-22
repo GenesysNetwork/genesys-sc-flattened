@@ -2,9 +2,51 @@
 /// @custom:security-contact iv7.software@gmail.com
 /// Genesys Network 2022.-
 /// By CryptoClub
+/// Farm&Staking V3.0
 pragma solidity 0.6.12;
 
+abstract contract ReentrancyGuard {
+    // Booleans are more expensive than uint256 or any type that takes up a full
+    // word because each write operation emits an extra SLOAD to first read the
+    // slot's contents, replace the bits taken up by the boolean, and then write
+    // back. This is the compiler's defense against contract upgrades and
+    // pointer aliasing, and it cannot be disabled.
 
+    // The values being non-zero value makes deployment a bit more expensive,
+    // but in exchange the refund on every call to nonReentrant will be lower in
+    // amount. Since refunds are capped to a percentage of the total
+    // transaction's gas, it is best to keep them low in cases like this one, to
+    // increase the likelihood of the full refund coming into effect.
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
+    uint256 private _status;
+
+    constructor () internal {
+        _status = _NOT_ENTERED;
+    }
+
+    /**
+     * @dev Prevents a contract from calling itself, directly or indirectly.
+     * Calling a `nonReentrant` function from another `nonReentrant`
+     * function is not supported. It is possible to prevent this from happening
+     * by making the `nonReentrant` function external, and make it call a
+     * `private` function that does the actual work.
+     */
+    modifier nonReentrant() {
+        // On the first call to nonReentrant, _notEntered will be true
+        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+
+        // Any calls to nonReentrant after this point will fail
+        _status = _ENTERED;
+
+        _;
+
+        // By storing the original value once again, a refund is triggered (see
+        // https://eips.ethereum.org/EIPS/eip-2200)
+        _status = _NOT_ENTERED;
+    }
+}
 // 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
@@ -322,7 +364,6 @@ library Address {
         }
         return (codehash != accountHash && codehash != 0x0);
     }
-
     /**
      * @dev Replacement for Solidity's `transfer`: sends `amount` wei to
      * `recipient`, forwarding all available gas and reverting on errors.
@@ -1454,22 +1495,8 @@ contract GsysBar is BEP20('GsysBar Token', 'GBAR') {
     }
 }
 
-// import "@nomiclabs/buidler/console.sol";
-interface IMigratorChef {
-    // Perform LP token migration from legacy GenesysSwap to GsysSwap.
-    // Take the current LP token address and return the new LP token address.
-    // Migrator should have full access to the caller's LP token.
-    // Return the new LP token address.
-    //
-    // XXX Migrator must have allowance access to GenesysSwap LP tokens.
-    // GsysSwap must mint EXACTLY the same amount of GsysSwap LP tokens or
-    // else something bad will happen. Traditional GenesysSwap does not
-    // do that so be careful!
-    function migrate(IBEP20 token) external returns (IBEP20);
-}
-
 // Have fun reading it. Hopefully it's bug-free. God bless.
-contract MasterChef is Ownable {
+contract MasterChef is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeBEP20 for IBEP20;
 
@@ -1496,6 +1523,7 @@ contract MasterChef is Ownable {
         uint256 allocPoint;       // How many allocation points assigned to this pool. GSYSs to distribute per block.
         uint256 lastRewardBlock;  // Last block number that GSYSs distribution occurs.
         uint256 accGsysPerShare; // Accumulated GSYSs per share, times 1e12. See below.
+        uint256 lpSupply;
     }
 
     // The GSYS TOKEN!
@@ -1508,9 +1536,7 @@ contract MasterChef is Ownable {
     uint256 public gsysPerBlock;
     // Bonus muliplier for early gsys makers.
     uint256 public BONUS_MULTIPLIER = 1;
-    // The migrator contract. It has a lot of power. Can only be set through governance (owner).
-    IMigratorChef public migrator;
-
+    
     // Info of each pool.
     PoolInfo[] public poolInfo;
     // Info of each user that stakes LP tokens.
@@ -1523,6 +1549,9 @@ contract MasterChef is Ownable {
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event SetDevAddress(address indexed user, address indexed newAddress);
+    event UpdateEmissionRate(address indexed user, uint256 gsysPerBlock);
+    event UpdateStartBlock(uint256 newStartBlock);
 
     constructor(
         GsysToken _gsys,
@@ -1542,7 +1571,8 @@ contract MasterChef is Ownable {
             lpToken: _gsys,
             allocPoint: 1000,
             lastRewardBlock: startBlock,
-            accGsysPerShare: 0
+            accGsysPerShare: 0,
+            lpSupply: 0
         }));
 
         totalAllocPoint = 1000;
@@ -1557,19 +1587,31 @@ contract MasterChef is Ownable {
         return poolInfo.length;
     }
 
+    mapping(IBEP20 => bool) public poolExistence;
+    modifier nonDuplicated(IBEP20 _lpToken) {
+        require(poolExistence[_lpToken] == false, "nonDuplicated: duplicated");
+        _;
+    }
+
     // Add a new lp to the pool. Can only be called by the owner.
     // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
-    function add(uint256 _allocPoint, IBEP20 _lpToken, bool _withUpdate) public onlyOwner {
+    function add(uint256 _allocPoint, IBEP20 _lpToken, bool _withUpdate) public onlyOwner nonDuplicated(_lpToken){
+        
+        // valid ERC20 token
+        _lpToken.balanceOf(address(this));
+
         if (_withUpdate) {
             massUpdatePools();
         }
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
+        poolExistence[_lpToken] = true;
         poolInfo.push(PoolInfo({
             lpToken: _lpToken,
             allocPoint: _allocPoint,
             lastRewardBlock: lastRewardBlock,
-            accGsysPerShare: 0
+            accGsysPerShare: 0,
+            lpSupply: 0
         }));
         updateStakingPool();
     }
@@ -1598,23 +1640,6 @@ contract MasterChef is Ownable {
             totalAllocPoint = totalAllocPoint.sub(poolInfo[0].allocPoint).add(points);
             poolInfo[0].allocPoint = points;
         }
-    }
-
-    // Set the migrator contract. Can only be called by the owner.
-    function setMigrator(IMigratorChef _migrator) public onlyOwner {
-        migrator = _migrator;
-    }
-
-    // Migrate lp token to another lp contract. Can be called by anyone. We trust that migrator contract is good.
-    function migrate(uint256 _pid) public {
-        require(address(migrator) != address(0), "migrate: no migrator");
-        PoolInfo storage pool = poolInfo[_pid];
-        IBEP20 lpToken = pool.lpToken;
-        uint256 bal = lpToken.balanceOf(address(this));
-        lpToken.safeApprove(address(migrator), bal);
-        IBEP20 newLpToken = migrator.migrate(lpToken);
-        require(bal == newLpToken.balanceOf(address(this)), "migrate: bad");
-        pool.lpToken = newLpToken;
     }
 
     // Return reward multiplier over the given _from to _to block.
@@ -1651,8 +1676,10 @@ contract MasterChef is Ownable {
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
+        
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
-        if (lpSupply == 0) {
+        
+        if (lpSupply == 0 || pool.allocPoint == 0) {
             pool.lastRewardBlock = block.number;
             return;
         }
@@ -1665,7 +1692,7 @@ contract MasterChef is Ownable {
     }
 
     // Deposit LP tokens to MasterChef for GSYS allocation.
-    function deposit(uint256 _pid, uint256 _amount) public {
+    function deposit(uint256 _pid, uint256 _amount) public nonReentrant{
 
         require (_pid != 0, 'deposit GSYS by staking');
 
@@ -1687,7 +1714,7 @@ contract MasterChef is Ownable {
     }
 
     // Withdraw LP tokens from MasterChef.
-    function withdraw(uint256 _pid, uint256 _amount) public {
+    function withdraw(uint256 _pid, uint256 _amount) public nonReentrant{
 
         require (_pid != 0, 'withdraw GSYS by unstaking');
 
@@ -1749,7 +1776,7 @@ contract MasterChef is Ownable {
     }
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _pid) public {
+    function emergencyWithdraw(uint256 _pid) public nonReentrant{
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         pool.lpToken.safeTransfer(address(msg.sender), user.amount);
@@ -1767,5 +1794,29 @@ contract MasterChef is Ownable {
     function dev(address _devaddr) public {
         require(msg.sender == devaddr, "dev: wut?");
         devaddr = _devaddr;
+        emit SetDevAddress(msg.sender, _devaddr);
     }
+    //PC has to add hidden dummy pools inorder to alter the emission, here we make it simple and transparent to all.
+    function updateEmissionRate(uint256 _GsysPerBlock) external onlyOwner {
+        massUpdatePools();
+        gsysPerBlock = _GsysPerBlock;
+        emit UpdateEmissionRate(msg.sender, _GsysPerBlock);
+    }
+
+
+    // Only update before start of farm
+    function updateStartBlock(uint256 _newStartBlock) external onlyOwner {
+        require(block.number < startBlock, "cannot change start block if farm has already started");
+        require(block.number < _newStartBlock, "cannot set start block in the past");
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            PoolInfo storage pool = poolInfo[pid];
+            pool.lastRewardBlock = _newStartBlock;
+        }
+        startBlock = _newStartBlock;
+
+        emit UpdateStartBlock(startBlock);
+    }
+
+
 }
