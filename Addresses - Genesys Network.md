@@ -24,8 +24,8 @@ Wallet Deployed all contracts :: 0x4E724587D7D27F99FDB40FF3BE2434B04F6731bc
         url:: https://bscscan.com/address/0xDACD2079268b8bF80a400bcB1BCe68A867fe20BD#code
 ### Genesys GSYSBar ADDRESS : 0xA138b8184e360DA6A9BBa0E6cb46625C67e78ff8
         url:: https://bscscan.com/address/0xA138b8184e360DA6A9BBa0E6cb46625C67e78ff8#code
-### Genesys MasterChef ADDRESS : 0xfB0899956E3Ad7Bb0E817E1f82130b001FDA7CC0  // 40 x Bloque
-        url:: https://bscscan.com/address/0xfB0899956E3Ad7Bb0E817E1f82130b001FDA7CC0#code
+### Genesys MasterChef ADDRESS : 0xfD4e4239b552aCa87531E763F82E8eFabcb214AC
+        url:: https://bscscan.com/address/0xfD4e4239b552aCa87531E763F82E8eFabcb214AC#code
         Dev Address Fee :: 0x21Fe20fD2FE7DC264d399AD931D724dB032B0Ff6
 
 ### Genesys TimeLock ADDRESS : NOT YET

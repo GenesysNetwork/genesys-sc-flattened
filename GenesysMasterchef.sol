@@ -1817,6 +1817,4 @@ contract MasterChef is Ownable, ReentrancyGuard {
 
         emit UpdateStartBlock(startBlock);
     }
-
-
 }
