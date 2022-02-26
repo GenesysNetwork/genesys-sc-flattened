@@ -20,8 +20,8 @@ Wallet Deployed all contracts :: 0x4E724587D7D27F99FDB40FF3BE2434B04F6731bc
 
 # FARMS & POOL STAKING
 
-### Genesys Token GSYS ADDRESS : 0xDACD2079268b8bF80a400bcB1BCe68A867fe20BD
-        url:: https://bscscan.com/address/0xDACD2079268b8bF80a400bcB1BCe68A867fe20BD#code
+### Genesys Token GSYS ADDRESS (w/ BURN Function) : 0x7255fbecd4C672E5aE2803532014d86b5DFA0609
+        url:: https://bscscan.com/address/0x7255fbecd4C672E5aE2803532014d86b5DFA0609#code
 ### Genesys GSYSBar ADDRESS : 0xA138b8184e360DA6A9BBa0E6cb46625C67e78ff8
         url:: https://bscscan.com/address/0xA138b8184e360DA6A9BBa0E6cb46625C67e78ff8#code
 ### Genesys MasterChef ADDRESS : 0xfD4e4239b552aCa87531E763F82E8eFabcb214AC
