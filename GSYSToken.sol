@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-/// @custom:security-contact iv7.software@gmail.com
-/// Genesys Network 2022.-
+/// Genesys Netåwork 2022.-
 /// By CryptoClub
 pragma solidity 0.6.12;
 
@@ -857,7 +856,7 @@ contract BEP20 is Context, IBEP20, Ownable {
 }
 
 // GsysToken with Governance.
-contract GsysToken is BEP20('Genesys Network Token', 'GSYS') {
+contract GsysToken is BEP20('Genesys Token', 'GSYS') {
     /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
