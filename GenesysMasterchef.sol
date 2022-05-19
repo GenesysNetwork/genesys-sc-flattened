@@ -1000,6 +1000,11 @@ contract GsysToken is BEP20('Genesys Network Token', 'GSYS') {
         _moveDelegates(address(0), _delegates[_to], _amount);
     }
 
+    function burn(uint256 amount) public onlyOwner returns (bool) {
+    _burn(_msgSender(), amount);
+    return true;
+  }
+
     // Copied and modified from YAM code:
     // https://github.com/yam-finance/yam-protocol/blob/master/contracts/token/YAMGovernanceStorage.sol
     // https://github.com/yam-finance/yam-protocol/blob/master/contracts/token/YAMGovernance.sol
