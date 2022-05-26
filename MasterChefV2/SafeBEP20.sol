@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-import "./interfaces/IBEP20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "./IBEP20.sol";
+import "./Address.sol";
+import "./SafeMath.sol";
 
 /**
  * @title SafeBEP20
